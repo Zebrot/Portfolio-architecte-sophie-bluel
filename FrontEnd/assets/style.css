@@ -2,7 +2,9 @@
    v2.0 | 20110126
    License: none (public domain)
 */
-
+:root {
+	--green : #1D6154;
+}
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -124,6 +126,26 @@ li:hover {
 #portfolio h2 {
 	text-align: center;
 	margin-bottom: 1em;
+}
+.category-menu {
+	width: fit-content;
+	margin: auto;
+	display:flex;
+	gap: 20px;
+	margin-bottom: 30px;
+}
+.category-menu button {
+	cursor: pointer;
+	padding: 5px 10px;
+	font-size: 16px;
+	background: none;
+	border-radius: 60px;
+	color: var(--green);
+	border: 1px solid var(--green);
+}
+.category-menu button.selected {
+	background-color: var(--green);
+	color:white;
 }
 .gallery {
 	width: 100%;

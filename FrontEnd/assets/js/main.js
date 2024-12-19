@@ -27,10 +27,9 @@ async function getCategories(url) {
 	}
 
 }
-
-function createGalery(works, categoryFilter) {
-	const portfolio = document.getElementById('portfolio').querySelector('.gallery');
-	portfolio.innerHTML = '';
+function createGallery(works, categoryFilter) {
+	var gallery = document.querySelector('.gallery');
+	gallery.innerHTML = '';
 	works.forEach((element, index) => {
 		if (!categoryFilter || categoryFilter.has('Tous') || categoryFilter.has(element.category.name)){
 			var newProjet = document.createElement('figure');
@@ -44,11 +43,10 @@ function createGalery(works, categoryFilter) {
 
 			newProjet.appendChild(newImg);
 			newProjet.appendChild(caption);
-			portfolio.appendChild(newProjet)
+			gallery.appendChild(newProjet)
 		}
 	});
 }
-
 function createCategoryMenu(categories,menu) {
 	categories.forEach(category =>{
 		var button = document.createElement('button');
@@ -74,10 +72,13 @@ function getFilter() {
 }
 
 async function setProjects(url) {
+	setMenu();
+
 	var works = await getWorks(url);
-	createGalery(works);	
+	createGallery(works);	
 	var categories = await getCategories(url);
-	console.log('hello');
+	console.log(window.sessionStorage.getItem('is-connected'));
+	console.log(window.sessionStorage.getItem('login-token'));
 
 	const categoryMenu = document.querySelector('.category-menu');
 	createCategoryMenu(categories, categoryMenu);
@@ -87,9 +88,24 @@ async function setProjects(url) {
 				button.classList.remove('selected');
 			});
 			e.target.classList.toggle('selected');
-			createGalery(works, getFilter());
+			createGallery(works, getFilter());
 		});	
 	});
+}
+
+function handleError (error) {
+	var errorField = document.querySelector('#error-field');
+	var emailField = document.querySelector('form').querySelector('[name=email]');
+	var passwordField = document.querySelector('form').querySelector('[name=password]');
+	if(error.message == '404'){
+		errorField.innerHTML = 'Utilisateur inconnu';
+		emailField.value = '';
+		passwordField.value = ''
+	}
+	else if (error.message == '401'){
+		errorField.innerHTML = 'Mauvais mot de passe';
+		passwordField.value = '';
+	}
 }
 
 async function login(url, logins) {
@@ -100,18 +116,30 @@ async function login(url, logins) {
 			headers: { "Content-Type": "application/json" },
 			body: logins		
 		});
-		if (!response.ok) {
-			throw new Error(`Response status: ${response.status}`);
+		if (!response.ok)
+			throw new Error(response.status);
+		else {
+			result = await response.json();
+			window.sessionStorage.setItem('login-token', result.token);
+			window.sessionStorage.setItem('is-connected', 'true');
+			return true;
 		}
-		result = await response.json();
-		return result.token;
 	} catch (error) {
-		console.error(error.message);
+		handleError(error);
+		return false;
 	}
+}
 
+function logout(event) {
+	event.preventDefault();
+	window.sessionStorage.setItem('login-token', '');
+	window.sessionStorage.setItem('is-connected', 'false');
+	console.log(window.sessionStorage.getItem('is-connected'));
+	setMenu();
 }
 
 async function setLogin(url) {
+	setMenu();
 	var loginForm = document.querySelector('#login');
 	loginForm.addEventListener('submit', async function(event) {
 		event.preventDefault();
@@ -119,13 +147,37 @@ async function setLogin(url) {
 			email : event.target.querySelector('[name=email]').value,
 			password : event.target.querySelector('[name=password]').value
 		};
-		var loginToken = await login(url, JSON.stringify(logins));
-		window.sessionStorage.setItem('login-token', loginToken);
-		window.sessionStorage.setItem('is-connected', 'true')
+		var isLogged = await login(url, JSON.stringify(logins));
+		setMenu();
+		if (isLogged)
+			window.location = './index.html'
 	});
 }
 
+function setMenu() {
+	var link = document.querySelector('#login-link');
+	var modalOpener = document.querySelector('#modal-opener');
+	if (window.sessionStorage.getItem('is-connected') == 'true'){
+		link.addEventListener('click', logout);
+		link.innerHTML = 'Logout';
+		if (modalOpener)
+			modalOpener.classList.add('show');
+	}
+	else {
+		link.removeEventListener('click', logout);
+		link.innerHTML = 'Login';
+		if(modalOpener)
+			modalOpener.classList.remove('show');
+	}
+}
 
+function getLoginToken () {
+	return window.sessionStorage.getItem('login-token');
+}
+function setLoginToken(value) {
+	window.sessionStorage.setItem('login-token', value);
+	return window.sessionStorage.getItem('login-token');
+}	
 
 /* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */
 function getCategoriesNoAPICall(works){

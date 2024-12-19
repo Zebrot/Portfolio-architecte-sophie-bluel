@@ -131,9 +131,26 @@ li:hover {
 #introduction p {
 	margin-bottom: 0.5em;
 }
+.portfolio-title {
+	display:flex;
+	align-items: baseline;
+	gap: 20px;
+	width: fit-content;
+	margin: auto;
+}
 #portfolio h2 {
-	text-align: center;
 	margin-bottom: 1em;
+}
+#modal-opener {
+	display: none;
+	cursor: pointer;
+	transition : color 0.2s;
+}
+#modal-opener:hover{
+	color : #B1663C;
+}
+#modal-opener.show {
+	display:inline;
 }
 .category-menu {
 	width: fit-content;
@@ -202,7 +219,6 @@ li:hover {
 	text-align: center;
 	text-decoration: underline;
 }
-
 input[type="submit"]{
 	font-family: 'Syne';
 	font-weight: 700;
@@ -213,10 +229,26 @@ input[type="submit"]{
 	text-align: center;
 	border-radius: 60px ;
 }
-
+#error-field {
+	color:red;
+}
 footer nav ul {
 	display: flex;
 	justify-content: flex-end;
 	margin: 2em
 }
 
+#modal h2 {
+	text-align: center;
+}
+#modal button {
+	display:block;
+	margin:auto;
+	background: #1D6154;
+	color:white;
+	font-size:14px;
+	height: 36px;
+	width: 237px;
+	border-radius: 60px;
+	border:none;
+}

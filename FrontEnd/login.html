@@ -21,7 +21,7 @@
 		<ul>
 			<li><a href="index.html">projets</a></li>
 			<li>contact</li>
-			<li><a href="login.html">login</a></li>
+			<li><a href="login.html" id  = 'login-link' onload = 'setMenu()' >login</a></li>
 			<li><img src="./assets/icons/instagram.png" alt="Instagram"></li>
 		</ul>
 	</nav>
@@ -30,6 +30,7 @@
 <main>
     <section class = "form">
 		<h2>Log In</h2>
+		<p id = 'error-field'></p>
 		<form action="#" method="post" id="login">
 			<label for="email">Email</label>
 			<input type="email" name="email" id="email">

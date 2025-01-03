@@ -27,8 +27,8 @@ async function getCategories(url) {
 	}
 
 }
-function createGallery(works, categoryFilter) {
-	var gallery = document.querySelector('.gallery');
+
+function createGallery(gallery, works, categoryFilter) {
 	gallery.innerHTML = '';
 	works.forEach((element, index) => {
 		if (!categoryFilter || categoryFilter.has('Tous') || categoryFilter.has(element.category.name)){
@@ -37,11 +37,11 @@ function createGallery(works, categoryFilter) {
 			var newImg = document.createElement('img');
 			newImg.src = element.imageUrl;
 			newImg.alt = element.title;
-
-			var caption = document.createElement('figcaption')
-			caption.innerHTML = element.title;
-
 			newProjet.appendChild(newImg);
+
+
+			var caption = document.createElement('figcaption');
+			caption.innerHTML = element.title;
 			newProjet.appendChild(caption);
 			gallery.appendChild(newProjet)
 		}
@@ -73,9 +73,13 @@ function getFilter() {
 
 async function setProjects(url) {
 	setMenu();
-
+	const gallery = document.querySelector('.gallery');
 	var works = await getWorks(url);
-	createGallery(works);	
+	createGallery(gallery, works);	
+
+	if (modal = document.querySelector('#modal'))
+		setModal(modal, works);
+
 	var categories = await getCategories(url);
 	console.log(window.sessionStorage.getItem('is-connected'));
 	console.log(window.sessionStorage.getItem('login-token'));
@@ -88,9 +92,11 @@ async function setProjects(url) {
 				button.classList.remove('selected');
 			});
 			e.target.classList.toggle('selected');
-			createGallery(works, getFilter());
+			createGallery(gallery, works, getFilter());
 		});	
 	});
+	if(sessionStorage.getItem('login-token'))
+		categoryMenu.classList.add('hide');
 }
 
 function handleError (error) {
@@ -153,6 +159,19 @@ async function setLogin(url) {
 			window.location = './index.html'
 	});
 }
+function getLoginToken () {
+	return window.sessionStorage.getItem('login-token');
+}
+function setLoginToken(value) {
+	try {
+		window.sessionStorage.setItem('login-token', value);
+		return window.sessionStorage.getItem('login-token');
+	}
+	catch (error) {
+		console.log(error.message);
+	}
+}
+
 
 function setMenu() {
 	var link = document.querySelector('#login-link');
@@ -171,13 +190,33 @@ function setMenu() {
 	}
 }
 
-function getLoginToken () {
-	return window.sessionStorage.getItem('login-token');
+function setModal(modal, works) {
+	const modalGallery = modal.querySelector('.gallery');
+	createModalGallery(modalGallery, works);
 }
-function setLoginToken(value) {
-	window.sessionStorage.setItem('login-token', value);
-	return window.sessionStorage.getItem('login-token');
-}	
+function createModalGallery(gallery, works) {
+	gallery.innerHTML = '';
+	works.forEach((element, index) => {
+		var newProjet = document.createElement('figure');
+
+		var newImg = document.createElement('img');
+		newImg.src = element.imageUrl;
+		newImg.alt = element.title;
+		newProjet.appendChild(newImg);
+
+		var deleteButton = document.createElement('i');
+		deleteButton.classList.add('fa-solid', 'fa-trash-can');
+		newProjet.appendChild(deleteButton);
+
+		gallery.appendChild(newProjet)
+	});
+}
+function toggleModal() {
+	document.querySelector('.modal-bg').classList.toggle('hide');
+}
+
+
+
 
 /* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */
 function getCategoriesNoAPICall(works){

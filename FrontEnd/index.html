@@ -44,7 +44,7 @@
 	<section id="portfolio">
 		<div class = 'portfolio-title'>
 			<h2>Mes Projets</h2>
-			<div id = 'modal-opener'>
+			<div id = 'modal-opener' onclick = 'toggleModal()'>
 				<i class="fa-solid fa-pen-to-square"></i>
 				Modifier
 			</div>
@@ -67,13 +67,16 @@
 			<input type="submit" value="Envoyer">
 		</form>
 	</section>
-	<aside id = 'modal'>
-		<h2>Galerie Photo</h2>
-		<div class="gallery">
-		</div>
-		<hr>
-		<button>Ajouter un projet</button>
-	</aside>
+	<div class = 'modal-bg hide' onclick = 'toggleModal()'>
+		<aside id = 'modal' onclick = 'toggleModal()'>
+			<i id = 'modal-closer' class="fa-solid fa-xmark" onclick = 'toggleModal()'></i>
+			<h2>Galerie Photo</h2>
+			<div class="gallery">
+			</div>
+			<hr>
+			<button>Ajouter un projet</button>
+		</aside>
+	</div>
 </main>
 
 <footer>

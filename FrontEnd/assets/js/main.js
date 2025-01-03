@@ -20,9 +20,9 @@ async function getCategories(url) {
 			throw new Error(`Response status: ${response.status}`);
 		}
 		result = await response.json();
-		categoryList = new Set();
+		categoryList = new Array();
 		result.forEach(cat =>{
-			categoryList.add(cat.name);
+			categoryList.push(cat.name);
 		})
 		return categoryList;
 	} catch (error) {
@@ -84,8 +84,8 @@ async function setProjects(url) {
 		setModal(modal, works);
 
 	var categories = await getCategories(url);
-	console.log(window.sessionStorage.getItem('is-connected'));
-	console.log(window.sessionStorage.getItem('login-token'));
+	if (projectForm = document.querySelector('#projects-form'))
+		setProjectCreator(projectForm, categories);
 
 	const categoryMenu = document.querySelector('.category-menu');
 	createCategoryMenu(categories, categoryMenu);
@@ -119,7 +119,6 @@ function handleError (error) {
 
 async function login(url, logins) {
 	try {
-		console.log(logins);
 		const response = await fetch(url + '/users/login', {
 			method : 'POST',
 			headers: { "Content-Type": "application/json" },
@@ -174,10 +173,6 @@ function setLoginToken(value) {
 		console.log(error.message);
 	}
 }
-
-
-
-
 function setMenu() {
 	var link = document.querySelector('#login-link');
 	var modalOpener = document.querySelector('#modal-opener');
@@ -244,35 +239,48 @@ async function deleteProject(project, projectID) {
 	}
 }
 
-async function setProjectCreator() {
-	var loginForm = document.querySelector('#login');
-	loginForm.addEventListener('submit', async function(event) {
+async function setProjectCreator(projectForm, categories) {
+	const categoryList = projectForm.querySelector('[name=category]');
+	console.log(categories);
+	categories.forEach((category, index, i) =>{
+		var option = document.createElement('option');
+		option.innerHTML = category;
+		option.value = index;
+		categoryList.appendChild(option);
+	});
+
+	projectForm.addEventListener('submit', async function(event) {
 		event.preventDefault();
-		var logins = {
-			email : event.target.querySelector('[name=email]').value,
-			password : event.target.querySelector('[name=password]').value
+		var projectOptions = {
+			image : event.target.querySelector('[name=image').value,
+			title : event.target.querySelector('[name=title]').value,
+			category : event.target.querySelector('[name=category]').value
 		};
-		var isLogged = await login(url, JSON.stringify(logins));
-		setMenu();
-		if (isLogged)
-			window.location = './index.html'
+		console.log(projectOptions);
+		var isCreated = await createProject(apiUrl, JSON.stringify(projectOptions));
+		return isCreated;
 	});
 }
 
-
-async function createProject(project) {
+async function createProject(project, body) {
 	try {
 		const loginToken = getLoginToken();
 		const headers = new Headers({
+			accept: "application/json",
 			Authorization: `Bearer ${loginToken}`});
-		const response = await fetch(`${apiUrl}/works/${project.id}`, {
-			method : 'POST',
+		console.log(`${apiUrl}/works`);
+
+		const response = await fetch(`${apiUrl}/works`, {
+			method : "post",
 			headers,
 			body
-		})
+		});
+
 		if (!response.ok) {
 			throw new Error(`Response status: ${response.status}`);
 		}
+		console.log('Projet créé !');
+		
 	} catch (error) {
 		console.error(error.message);
 	}

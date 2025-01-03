@@ -70,8 +70,27 @@
 	<div class = 'modal-bg hide' onclick = 'toggleModal()'>
 		<aside id = 'modal' onclick = 'toggleModal()'>
 			<i id = 'modal-closer' class="fa-solid fa-xmark" onclick = 'toggleModal()'></i>
-			<h2>Galerie Photo</h2>
-			<div class="gallery">
+			<div class = "modal-gallery hide">
+				<h2>Galerie Photo</h2>
+				<div class = "gallery">
+				</div>
+			</div>
+			<div class = 'modal-form form'>
+				<h2>Ajouter un Projet</h2>
+				<form action="#" method="post" id="projects-form">
+
+					<label for="image" class = 'file-input-button'>
+						<i class="fa-solid fa-image"></i>
+						<button>+ Ajouter Photo</button>
+						<p>jpg,png: 4mo max</p>
+						<input type="file" name="image" id="image">
+					</label>
+
+					<label for="title">Titre</label>
+					<input type="text" name="title" id="title">
+					<label for="category">Catégorie</label>
+					<input type="text" name="category" id="category">
+				</form>
 			</div>
 			<hr>
 			<button>Ajouter un projet</button>

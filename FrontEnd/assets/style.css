@@ -301,7 +301,6 @@ footer nav ul {
 	cursor: pointer;
 	right: 5px;
 	top : 5px;
-	font-size: 15px;
 	border-radius: 5px;
 	color:white;
 	background:black;
@@ -312,4 +311,45 @@ footer nav ul {
 #modal .gallery figure i:hover {
 	color: red;
 	background-color: white;
+}
+
+.modal-form {
+	width : 100%;
+	min-width: 400px;
+}
+
+input[type = file] {
+	display:none;
+}
+.file-input-button {
+	background-color: #E8F1F6;
+	height: 169px;
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 20px 0px;
+	cursor: pointer;
+}
+.file-input-button > * {
+	transition: 0.4s;
+}
+.file-input-button i {
+	font-size:76px;
+	color:#B9C5CC;
+}
+#modal .file-input-button button {
+	color:#306685;
+	background: #B9C5CC;
+	font-weight: 500;
+}
+.file-input-button p {
+	font-size:small;
+	color: #B9C5CC;
+}
+.file-input-button:hover i {
+	color: #1D6154;
+}
+#modal .file-input-button:hover button {
+	background: #1D6154;
+	color:white;
 }

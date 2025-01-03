@@ -1,3 +1,6 @@
+const apiUrl = 'http://localhost:5678/api';
+
+
 async function getWorks(url) {
 	try {
 		const response = await fetch(url + '/works');
@@ -173,6 +176,8 @@ function setLoginToken(value) {
 }
 
 
+
+
 function setMenu() {
 	var link = document.querySelector('#login-link');
 	var modalOpener = document.querySelector('#modal-opener');
@@ -207,15 +212,74 @@ function createModalGallery(gallery, works) {
 		var deleteButton = document.createElement('i');
 		deleteButton.classList.add('fa-solid', 'fa-trash-can');
 		newProjet.appendChild(deleteButton);
+		deleteButton.addEventListener('click', () => deleteProject(element, index));
 
 		gallery.appendChild(newProjet)
 	});
+
 }
 function toggleModal() {
 	document.querySelector('.modal-bg').classList.toggle('hide');
 }
+async function deleteProject(project, projectID) {
+	try {
+		if(!confirm(`Are you sure you want to delete "${project.title}" ?`))
+			return false;
+		const loginToken = getLoginToken();
+		const headers = new Headers({
+			Authorization: `Bearer ${loginToken}`});
+
+		const response = await fetch(`${apiUrl}/works/${project.id}`, {
+			method : 'DELETE',
+			headers
+		})
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+		document.querySelectorAll('.gallery').forEach(gallery => {
+			removeProjectFromGallery(gallery, projectID)
+		})
+	} catch (error) {
+		console.error(error.message);
+	}
+}
+
+async function setProjectCreator() {
+	var loginForm = document.querySelector('#login');
+	loginForm.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		var logins = {
+			email : event.target.querySelector('[name=email]').value,
+			password : event.target.querySelector('[name=password]').value
+		};
+		var isLogged = await login(url, JSON.stringify(logins));
+		setMenu();
+		if (isLogged)
+			window.location = './index.html'
+	});
+}
 
 
+async function createProject(project) {
+	try {
+		const loginToken = getLoginToken();
+		const headers = new Headers({
+			Authorization: `Bearer ${loginToken}`});
+		const response = await fetch(`${apiUrl}/works/${project.id}`, {
+			method : 'POST',
+			headers,
+			body
+		})
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+	} catch (error) {
+		console.error(error.message);
+	}
+}
+function removeProjectFromGallery(gallery, projectID) {
+	gallery.querySelectorAll('figure')[projectID].classList.add('hide');
+}
 
 
 /* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */

@@ -323,6 +323,8 @@ input[type = file] {
 	display:none;
 }
 .file-input-button {
+	z-index: 0;
+	position:relative;
 	background-color: #E8F1F6;
 	height: 169px;
 	display:flex;
@@ -333,6 +335,7 @@ input[type = file] {
 }
 .file-input-button > * {
 	transition: 0.4s;
+	z-index: 10;
 }
 .file-input-button i {
 	font-size:76px;
@@ -349,6 +352,15 @@ input[type = file] {
 }
 .file-input-button:hover i {
 	color: #1D6154;
+}
+.file-input-button img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	z-index: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 #modal .file-input-button:hover button {
 	background: #1D6154;

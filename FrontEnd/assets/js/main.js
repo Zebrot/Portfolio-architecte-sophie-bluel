@@ -1,6 +1,5 @@
 const apiUrl = 'http://localhost:5678/api';
 
-
 async function getWorks(url) {
 	try {
 		const response = await fetch(url + '/works');
@@ -241,45 +240,67 @@ async function deleteProject(project, projectID) {
 
 async function setProjectCreator(projectForm, categories) {
 	const categoryList = projectForm.querySelector('[name=category]');
-	console.log(categories);
-	categories.forEach((category, index, i) =>{
+	categories.forEach((category, index) =>{
 		var option = document.createElement('option');
 		option.innerHTML = category;
 		option.value = index;
 		categoryList.appendChild(option);
 	});
 
-	projectForm.addEventListener('submit', async function(event) {
+	projectForm.addEventListener('submit', function(event) {
 		event.preventDefault();
 		var projectOptions = {
-			image : event.target.querySelector('[name=image').value,
+			image : event.target.querySelector('[name=image]').files[0],
 			title : event.target.querySelector('[name=title]').value,
-			category : event.target.querySelector('[name=category]').value
+			category : parseInt(event.target.querySelector('[name=category]').value)
 		};
-		console.log(projectOptions);
-		var isCreated = await createProject(apiUrl, JSON.stringify(projectOptions));
-		return isCreated;
+		console.log(projectOptions.image)
+		createProject(projectOptions);
+	});
+
+	projectForm.querySelector('[name=image]').addEventListener('change', ()=>{ //Preview display
+		const file = projectForm.querySelector('[name=image]').files[0]; 
+		const inputButton = projectForm.querySelector('.file-input-button');
+		if (file) {
+		  const reader = new FileReader();
+		  reader.onload = () => {
+			var img = document.createElement('img');
+			img.src = reader.result;
+			inputButton.querySelectorAll('img').forEach(img => img.remove())
+			inputButton.appendChild(img);
+
+		};
+	  
+		  reader.readAsDataURL(file); // Read the file as a data URL
+		} else {
+			inputButton.querySelectorAll('img').forEach(img => img.remove())
+		}
 	});
 }
-
-async function createProject(project, body) {
+async function createProject(data) {
 	try {
-		const loginToken = getLoginToken();
-		const headers = new Headers({
-			accept: "application/json",
-			Authorization: `Bearer ${loginToken}`});
-		console.log(`${apiUrl}/works`);
+		const formData = new FormData();
+		formData.append('image', data.image,);		
+		formData.append('title', data.title);
+		formData.append('category', data.category);
 
-		const response = await fetch(`${apiUrl}/works`, {
-			method : "post",
+		token = getLoginToken();
+		headers = new Headers({
+			Authorization: `Bearer ${token}`,
+		})
+		response = await fetch(`${apiUrl}/works`, {
+			method: 'POST',
 			headers,
-			body
+			body: formData
 		});
-
 		if (!response.ok) {
 			throw new Error(`Response status: ${response.status}`);
 		}
-		console.log('Projet créé !');
+
+		document.querySelector('#projects-form').reset();
+		toggleModal();
+		works = await getWorks(apiUrl);
+		createGallery(document.querySelector('.gallery'), works);
 		
 	} catch (error) {
 		console.error(error.message);

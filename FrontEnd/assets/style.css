@@ -25,6 +25,9 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 }
+button, input[type=submit] {
+	cursor: pointer;
+}
 .hide {
 	display:none !important;
 }
@@ -185,7 +188,6 @@ li:hover {
 
 .gallery img {
 	width: 100%;
-
 }
 .form {
 	width: 50%;
@@ -205,7 +207,7 @@ li:hover {
 	flex-direction: column;
 }
 
-.form input {
+.form input, form select {
 	height: 50px;
 	font-size: 1.2em;
 	border: none;
@@ -232,8 +234,13 @@ input[type="submit"]{
 	text-align: center;
 	border-radius: 60px ;
 }
-#error-field {
+.error-field {
 	color:red;
+	text-align: center;
+}
+.success-field {
+	color:green;
+	text-align: center;
 }
 footer nav ul {
 	display: flex;
@@ -290,9 +297,15 @@ footer nav ul {
 	grid-template-rows: repeat(3, 1fr);
 }
 #modal #modal-closer {
-	font-size: large;
 	cursor:pointer;
 	text-align: right;
+	display: block;
+	width: fit-content;
+	position: absolute;
+	right: 20px;
+}
+.modal-icon {
+	font-size: x-large;
 }
 #modal figure {
 	position:relative;
@@ -339,7 +352,10 @@ input[type = file] {
 	font-size:76px;
 	color:#B9C5CC;
 }
-#modal .file-input-button button {
+#modal .file-input-button figure {
+	border-radius : 15px;
+	padding: 10px 30px;
+	margin: 30px 40px 5px;
 	color:#306685;
 	background: #B9C5CC;
 	font-weight: 500;
@@ -359,7 +375,7 @@ input[type = file] {
 	top: 0;
 	left: 0;
 }
-#modal .file-input-button:hover button {
+#modal .file-input-button:hover figure {
 	background: #1D6154;
 	color:white;
 }

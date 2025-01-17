@@ -26,7 +26,7 @@ async function getCategories(url) {
 
 }
 
-function createGallery(gallery, works, categoryFilter) {
+function createGallery(gallery, works, categoryFilter) { 
 	gallery.innerHTML = '';
 	works.forEach((work) => {
 		if (!categoryFilter || categoryFilter == 'Tous' || categoryFilter == work.category.name){
@@ -60,7 +60,7 @@ function createCategoryMenu(menu, categories) {
 
 function getFilter() {
 	const categoryMenu = document.querySelector('.category-menu');
-	if(filterValue = categoryMenu.querySelector('.selected').innerText)
+	if((filterValue = categoryMenu.querySelector('.selected').innerText))
 		return filterValue;
 	else
 		return 'Tous';
@@ -72,11 +72,11 @@ async function setProjects(url) {
 	const works = await getWorks(url);
 	createGallery(gallery, works);	
 
-	if (modal = document.querySelector('#modal'))
+	if ((modal = document.querySelector('#modal')))
 		setModal(modal, works);
 
 	const categories = await getCategories(url);
-	if (projectForm = document.querySelector('#projects-form'))
+	if ((projectForm = document.querySelector('#projects-form')))
 		setProjectCreator(projectForm, categories);
 
 	const categoryMenu = document.querySelector('.category-menu');
@@ -88,7 +88,7 @@ async function setProjects(url) {
 			});
 			e.target.classList.toggle('selected');
 			createGallery(gallery, works, getFilter());
-		});	
+		});
 	});
 	if(sessionStorage.getItem('login-token'))
 		categoryMenu.classList.add('hide');
@@ -128,7 +128,6 @@ async function login(url, logins) {
 		}
 	} catch (error) {
 		handleError(error);
-		return false;
 	}
 }
 
@@ -136,14 +135,13 @@ function logout(event) {
 	event.preventDefault();
 	window.sessionStorage.setItem('login-token', '');
 	window.sessionStorage.setItem('is-connected', 'false');
-	console.log(window.sessionStorage.getItem('is-connected'));
 	setMenu();
 	setProjects(apiUrl);
 }
 
 async function setLogin(url) {
 	setMenu();
-	var loginForm = document.querySelector('#login');
+	const loginForm = document.querySelector('#login');
 	loginForm.addEventListener('submit', async function(event) {
 		event.preventDefault();
 		var logins = {
@@ -164,7 +162,7 @@ function setLoginToken(value) {
 		return window.sessionStorage.getItem('login-token');
 	}
 	catch (error) {
-		console.log(error.message);
+		console.error(error.message);
 	}
 }
 function setMenu() {
@@ -172,16 +170,17 @@ function setMenu() {
 	if (window.sessionStorage.getItem('is-connected') == 'true'){
 		link.addEventListener('click', logout);
 		link.innerHTML = 'Logout';
-		if (modalOpener = document.querySelector('#modal-opener'))
+		if ((modalOpener = document.querySelector('#modal-opener')))
 			modalOpener.classList.add('show');
 	}
 	else {
 		link.removeEventListener('click', logout);
 		link.innerHTML = 'Login';
-		if(modalOpener)
+		if((modalOpener = document.querySelector('#modal-opener')))
 			modalOpener.classList.remove('show');
 	}
 }
+// Modal 
 
 function setModal(modal, works) {
 	const modalGallery = modal.querySelector('.gallery');
@@ -215,6 +214,9 @@ function changeModal() {
 		modalDiv.classList.toggle('hide')}
 	);
 }
+
+// Create & Delete Projects 
+
 async function deleteProject(project, projectID) {
 	try {
 		if(!confirm(`Are you sure you want to delete "${project.title}" ?`))
@@ -237,6 +239,35 @@ async function deleteProject(project, projectID) {
 		console.error(error.message);
 	}
 }
+async function createProject(projectOptions) {
+	try {
+		const formData = new FormData();
+		formData.append('image', projectOptions.image);		
+		formData.append('title', projectOptions.title);
+		formData.append('category', projectOptions.category);
+
+		token = getLoginToken();
+		headers = new Headers({
+			Authorization: `Bearer ${token}`,
+		})
+		response = await fetch(`${apiUrl}/works`, {
+			method: 'POST',
+			headers,
+			body: formData
+		});
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+
+		handleCreationResult(`Projet ${projectOptions.title} créé !`, true)
+		document.querySelector('#projects-form').reset();
+		works = await getWorks(apiUrl);
+		createGallery(document.querySelector('.gallery'), works);
+		
+	} catch (error) {
+		console.error(error);
+	}
+}
 
 function setProjectCreator(projectForm, categories) {
 	const categoryList = projectForm.querySelector('[name=category]');
@@ -254,7 +285,6 @@ function setProjectCreator(projectForm, categories) {
 			title : event.target.querySelector('[name=title]').value,
 			category : parseInt(event.target.querySelector('[name=category]').value)
 		};
-		console.log(projectOptions.image)
 		if(validateProject(projectOptions, categories))
 			createProject(projectOptions);
 	});
@@ -273,7 +303,6 @@ function setProjectCreator(projectForm, categories) {
 				inputButton.appendChild(img);
 			};
 			reader.readAsDataURL(file);
-			console.log(file);
 		} else {
 			inputButton.querySelectorAll('img').forEach(img => img.remove());
 		}
@@ -281,54 +310,39 @@ function setProjectCreator(projectForm, categories) {
 	projectForm.addEventListener('reset', () => { 
 		// reset() doesn't trigger onChange, so reset preview here 
 		inputButton.querySelectorAll('img').forEach(img => img.remove());
-		console.log('hi')
+		projectForm.querySelector('.error-field').innerText = '';
 	});
-}
-async function createProject(data) {
-	try {
-		const formData = new FormData();
-		formData.append('image', data.image,);		
-		formData.append('title', data.title);
-		formData.append('category', data.category);
-
-		token = getLoginToken();
-		headers = new Headers({
-			Authorization: `Bearer ${token}`,
-		})
-		response = await fetch(`${apiUrl}/works`, {
-			method: 'POST',
-			headers,
-			body: formData
-		});
-		if (!response.ok) {
-			throw new Error(`Response status: ${response.status}`);
-		}
-
-		document.querySelector('#projects-form').reset();
-		works = await getWorks(apiUrl);
-		createGallery(document.querySelector('.gallery'), works);
-		
-	} catch (error) {
-		console.error(error.message);
-	}
 }
 function removeProjectFromGallery(gallery, projectID) {
 	gallery.querySelectorAll('figure')[projectID].classList.add('hide');
+}
+function handleCreationResult(message, greenFlag) {
+	const textField = greenFlag ? document.querySelector('#creation-success') : document.querySelector('#creation-error') ;
+	textField.innerText = message;
 }
 function validateProject(projectOptions, categories) {
 	const title = projectOptions.title;
 	const category = projectOptions.category;
 	const image = projectOptions.image;
-	/*
-	try {
-		if(typeof title != "string")
-			throw new error('Le titre doit être une chaîne de caractères !')
-		if (typeof category != "number" || category )
-	}catch {
-
+	categoryIdList = categories.map(cat => cat.id);
+	try{
+		if (typeof title != 'string' || title.length == 0)
+			throw new Error('Le titre doit être une chaîne de caractères')
+		if (typeof category != 'number')
+			throw new Error("Le numéro de catégorie n'est pas un nombre")
+		if (!image)
+			throw new Error('Sélectionnez une image')
+		if (!categoryIdList.includes(category))
+			throw new Error('Sélectionnez une catégorie')
+		if(image.size > '4000000')
+			throw new Error ('Image trop large !')
+		if (title == "oups")
+			throw new Error ('oups')
+		return true;	
+	}catch(error) {
+		handleCreationResult(error.message);
 	}
-	*/
-	return true;
+
 }
 
 /* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */

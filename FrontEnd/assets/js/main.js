@@ -19,11 +19,7 @@ async function getCategories(url) {
 			throw new Error(`Response status: ${response.status}`);
 		}
 		result = await response.json();
-		categoryList = new Array();
-		result.forEach(cat =>{
-			categoryList.push(cat.name);
-		})
-		return categoryList;
+		return result;
 	} catch (error) {
 		console.error(error.message);
 	}
@@ -32,27 +28,28 @@ async function getCategories(url) {
 
 function createGallery(gallery, works, categoryFilter) {
 	gallery.innerHTML = '';
-	works.forEach((element, index) => {
-		if (!categoryFilter || categoryFilter.has('Tous') || categoryFilter.has(element.category.name)){
+	works.forEach((work) => {
+		if (!categoryFilter || categoryFilter == 'Tous' || categoryFilter == work.category.name){
 			var newProjet = document.createElement('figure');
 
 			var newImg = document.createElement('img');
-			newImg.src = element.imageUrl;
-			newImg.alt = element.title;
+			newImg.src = work.imageUrl;
+			newImg.alt = work.title;
 			newProjet.appendChild(newImg);
 
 
 			var caption = document.createElement('figcaption');
-			caption.innerHTML = element.title;
+			caption.innerHTML = work.title;
 			newProjet.appendChild(caption);
 			gallery.appendChild(newProjet)
 		}
 	});
 }
-function createCategoryMenu(categories,menu) {
+function createCategoryMenu(menu, categories) {
+	menu.innerHTML = '';
 	categories.forEach(category =>{
 		var button = document.createElement('button');
-		button.innerHTML = category;
+		button.innerHTML = category.name;
 		menu.appendChild(button);
 	});
 
@@ -63,31 +60,27 @@ function createCategoryMenu(categories,menu) {
 
 function getFilter() {
 	const categoryMenu = document.querySelector('.category-menu');
-	var filter = new Set();
-	categoryMenu.querySelectorAll('.selected').forEach(button => {
-		filter.add(button.innerText);
-	});
-	if (filter.size == 0)
-		filter.add('Tous');
-
-	return filter;
+	if(filterValue = categoryMenu.querySelector('.selected').innerText)
+		return filterValue;
+	else
+		return 'Tous';
 }
 
 async function setProjects(url) {
 	setMenu();
 	const gallery = document.querySelector('.gallery');
-	var works = await getWorks(url);
+	const works = await getWorks(url);
 	createGallery(gallery, works);	
 
 	if (modal = document.querySelector('#modal'))
 		setModal(modal, works);
 
-	var categories = await getCategories(url);
+	const categories = await getCategories(url);
 	if (projectForm = document.querySelector('#projects-form'))
 		setProjectCreator(projectForm, categories);
 
 	const categoryMenu = document.querySelector('.category-menu');
-	createCategoryMenu(categories, categoryMenu);
+	createCategoryMenu(categoryMenu, categories);
 	categoryMenu.querySelectorAll('button').forEach(button => { // On le fait ici pour avoir accès à la variable works
 		button.addEventListener('click', e => {
 			categoryMenu.querySelectorAll('button').forEach(button =>{
@@ -99,6 +92,8 @@ async function setProjects(url) {
 	});
 	if(sessionStorage.getItem('login-token'))
 		categoryMenu.classList.add('hide');
+	else 
+		categoryMenu.classList.remove('hide');
 }
 
 function handleError (error) {
@@ -143,6 +138,7 @@ function logout(event) {
 	window.sessionStorage.setItem('is-connected', 'false');
 	console.log(window.sessionStorage.getItem('is-connected'));
 	setMenu();
+	setProjects(apiUrl);
 }
 
 async function setLogin(url) {
@@ -155,7 +151,6 @@ async function setLogin(url) {
 			password : event.target.querySelector('[name=password]').value
 		};
 		var isLogged = await login(url, JSON.stringify(logins));
-		setMenu();
 		if (isLogged)
 			window.location = './index.html'
 	});
@@ -174,11 +169,10 @@ function setLoginToken(value) {
 }
 function setMenu() {
 	var link = document.querySelector('#login-link');
-	var modalOpener = document.querySelector('#modal-opener');
 	if (window.sessionStorage.getItem('is-connected') == 'true'){
 		link.addEventListener('click', logout);
 		link.innerHTML = 'Logout';
-		if (modalOpener)
+		if (modalOpener = document.querySelector('#modal-opener'))
 			modalOpener.classList.add('show');
 	}
 	else {
@@ -215,6 +209,12 @@ function createModalGallery(gallery, works) {
 function toggleModal() {
 	document.querySelector('.modal-bg').classList.toggle('hide');
 }
+function changeModal() {
+	const modal = document.querySelector('#modal');
+	modal.querySelectorAll('div').forEach(modalDiv => {
+		modalDiv.classList.toggle('hide')}
+	);
+}
 async function deleteProject(project, projectID) {
 	try {
 		if(!confirm(`Are you sure you want to delete "${project.title}" ?`))
@@ -238,12 +238,12 @@ async function deleteProject(project, projectID) {
 	}
 }
 
-async function setProjectCreator(projectForm, categories) {
+function setProjectCreator(projectForm, categories) {
 	const categoryList = projectForm.querySelector('[name=category]');
-	categories.forEach((category, index) =>{
+	categories.forEach((category) =>{
 		var option = document.createElement('option');
-		option.innerHTML = category;
-		option.value = index;
+		option.innerHTML = category.name;
+		option.value = category.id;
 		categoryList.appendChild(option);
 	});
 
@@ -255,26 +255,33 @@ async function setProjectCreator(projectForm, categories) {
 			category : parseInt(event.target.querySelector('[name=category]').value)
 		};
 		console.log(projectOptions.image)
-		createProject(projectOptions);
+		if(validateProject(projectOptions, categories))
+			createProject(projectOptions);
 	});
 
-	projectForm.querySelector('[name=image]').addEventListener('change', ()=>{ //Preview display
-		const file = projectForm.querySelector('[name=image]').files[0]; 
-		const inputButton = projectForm.querySelector('.file-input-button');
-		if (file) {
-		  const reader = new FileReader();
-		  reader.onload = () => {
-			var img = document.createElement('img');
-			img.src = reader.result;
-			inputButton.querySelectorAll('img').forEach(img => img.remove())
-			inputButton.appendChild(img);
+	const imageInput = projectForm.querySelector('[name=image]');
+	const inputButton = projectForm.querySelector('.file-input-button');
 
-		};
-	  
-		  reader.readAsDataURL(file); // Read the file as a data URL
+	imageInput.addEventListener('change', ()=>{ //Preview display
+		const file = imageInput.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				var img = document.createElement('img');
+				img.src = reader.result;
+				inputButton.querySelectorAll('img').forEach(img => img.remove());
+				inputButton.appendChild(img);
+			};
+			reader.readAsDataURL(file);
+			console.log(file);
 		} else {
-			inputButton.querySelectorAll('img').forEach(img => img.remove())
+			inputButton.querySelectorAll('img').forEach(img => img.remove());
 		}
+	});
+	projectForm.addEventListener('reset', () => { 
+		// reset() doesn't trigger onChange, so reset preview here 
+		inputButton.querySelectorAll('img').forEach(img => img.remove());
+		console.log('hi')
 	});
 }
 async function createProject(data) {
@@ -298,7 +305,6 @@ async function createProject(data) {
 		}
 
 		document.querySelector('#projects-form').reset();
-		toggleModal();
 		works = await getWorks(apiUrl);
 		createGallery(document.querySelector('.gallery'), works);
 		
@@ -309,7 +315,21 @@ async function createProject(data) {
 function removeProjectFromGallery(gallery, projectID) {
 	gallery.querySelectorAll('figure')[projectID].classList.add('hide');
 }
+function validateProject(projectOptions, categories) {
+	const title = projectOptions.title;
+	const category = projectOptions.category;
+	const image = projectOptions.image;
+	/*
+	try {
+		if(typeof title != "string")
+			throw new error('Le titre doit être une chaîne de caractères !')
+		if (typeof category != "number" || category )
+	}catch {
 
+	}
+	*/
+	return true;
+}
 
 /* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */
 function getCategoriesNoAPICall(works){

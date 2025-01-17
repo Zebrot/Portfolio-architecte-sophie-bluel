@@ -70,15 +70,17 @@
 	<div class = 'modal-bg hide' onclick = 'toggleModal()'>
 		<aside id = 'modal' onclick = 'toggleModal()'>
 			<i id = 'modal-closer' class="fa-solid fa-xmark" onclick = 'toggleModal()'></i>
-			<div class = "modal-gallery hide">
+			<div class = "modal-gallery">
 				<h2>Galerie Photo</h2>
 				<div class = "gallery">
 				</div>
+				<hr>
+				<button id = "gallery-button" onclick = "changeModal()">Ajouter une photo</button>	
 			</div>
-			<div class = 'modal-form form'>
+			<div class = 'modal-form form hide'>
 				<h2>Ajouter un Projet</h2>
 				<form action="#" method="post" id="projects-form">
-
+					<input type = "reset" value = "click bb">
 					<label for="image" class = 'file-input-button'>
 						<i class="fa-solid fa-image"></i>
 						<button>+ Ajouter Photo</button>
@@ -92,10 +94,10 @@
 					<select name="category" id="category">
 						<option value = 1> catégorie 1</option>
 					</select>
+					<hr>
+					<input type = "submit" value = "Valider">
 				</form>
 			</div>
-			<hr>
-			<button>Ajouter un projet</button>
 		</aside>
 	</div>
 </main>

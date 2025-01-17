@@ -1,5 +1,6 @@
 const apiUrl = 'http://localhost:5678/api';
 
+// API Gets
 async function getWorks(url) {
 	try {
 		const response = await fetch(url + '/works');
@@ -23,7 +24,66 @@ async function getCategories(url) {
 	} catch (error) {
 		console.error(error.message);
 	}
+}
 
+// Set Pages & elements
+async function setProjects(url) {
+	setMenu();
+	const gallery = document.querySelector('.gallery');
+	const works = await getWorks(url);
+	createGallery(gallery, works);	
+
+	if ((modal = document.querySelector('#modal')))
+		setModal(modal, works);
+
+	const categories = await getCategories(url);
+	if ((projectForm = document.querySelector('#projects-form')))
+		setProjectCreator(projectForm, categories);
+
+	const categoryMenu = document.querySelector('.category-menu');
+	createCategoryMenu(categoryMenu, categories);
+	categoryMenu.querySelectorAll('button').forEach(button => { // On le fait ici pour avoir accès à la variable works
+		button.addEventListener('click', e => {
+			categoryMenu.querySelectorAll('button').forEach(button =>{
+				button.classList.remove('selected');
+			});
+			e.target.classList.toggle('selected');
+			createGallery(gallery, works, getFilter());
+		});
+	});
+	if(sessionStorage.getItem('login-token'))
+		categoryMenu.classList.add('hide');
+	else 
+		categoryMenu.classList.remove('hide');
+}
+async function setLogin(url) {
+	setMenu();
+	const loginForm = document.querySelector('#login');
+	loginForm.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		var logins = {
+			email : event.target.querySelector('[name=email]').value,
+			password : event.target.querySelector('[name=password]').value
+		};
+		var isLogged = await login(url, JSON.stringify(logins));
+		if (isLogged)
+			window.location = './index.html'
+	});
+}
+function setMenu() {
+	var link = document.querySelector('#login-link');
+	if (window.sessionStorage.getItem('is-connected') == 'true'){
+		link.addEventListener('click', logout);
+		link.innerHTML = 'Logout';
+		if ((modalOpener = document.querySelector('#modal-opener')))
+			modalOpener.classList.add('show');
+	}
+	else {
+		link.removeEventListener('click', logout);
+		link.innerHTML = 'Login';
+		if((modalOpener = document.querySelector('#modal-opener')))
+			modalOpener.classList.remove('show');
+	}
 }
 
 function createGallery(gallery, works, categoryFilter) { 
@@ -57,7 +117,6 @@ function createCategoryMenu(menu, categories) {
 	resetButton.innerText = 'Tous';
 	menu.prepend(resetButton);
 }
-
 function getFilter() {
 	const categoryMenu = document.querySelector('.category-menu');
 	if((filterValue = categoryMenu.querySelector('.selected').innerText))
@@ -66,35 +125,28 @@ function getFilter() {
 		return 'Tous';
 }
 
-async function setProjects(url) {
-	setMenu();
-	const gallery = document.querySelector('.gallery');
-	const works = await getWorks(url);
-	createGallery(gallery, works);	
+// Login 
 
-	if ((modal = document.querySelector('#modal')))
-		setModal(modal, works);
-
-	const categories = await getCategories(url);
-	if ((projectForm = document.querySelector('#projects-form')))
-		setProjectCreator(projectForm, categories);
-
-	const categoryMenu = document.querySelector('.category-menu');
-	createCategoryMenu(categoryMenu, categories);
-	categoryMenu.querySelectorAll('button').forEach(button => { // On le fait ici pour avoir accès à la variable works
-		button.addEventListener('click', e => {
-			categoryMenu.querySelectorAll('button').forEach(button =>{
-				button.classList.remove('selected');
-			});
-			e.target.classList.toggle('selected');
-			createGallery(gallery, works, getFilter());
+async function login(url, logins) {
+	try {
+		const response = await fetch(url + '/users/login', {
+			method : 'POST',
+			headers: { "Content-Type": "application/json" },
+			body: logins
 		});
-	});
-	if(sessionStorage.getItem('login-token'))
-		categoryMenu.classList.add('hide');
-	else 
-		categoryMenu.classList.remove('hide');
+		if (!response.ok)
+			throw new Error(response.status);
+		else {
+			result = await response.json();
+			window.sessionStorage.setItem('login-token', result.token);
+			window.sessionStorage.setItem('is-connected', 'true');
+			return true;
+		}
+	} catch (error) {
+		handleError(error);
+	}
 }
+
 
 function handleError (error) {
 	var errorField = document.querySelector('#error-field');
@@ -111,26 +163,6 @@ function handleError (error) {
 	}
 }
 
-async function login(url, logins) {
-	try {
-		const response = await fetch(url + '/users/login', {
-			method : 'POST',
-			headers: { "Content-Type": "application/json" },
-			body: logins		
-		});
-		if (!response.ok)
-			throw new Error(response.status);
-		else {
-			result = await response.json();
-			window.sessionStorage.setItem('login-token', result.token);
-			window.sessionStorage.setItem('is-connected', 'true');
-			return true;
-		}
-	} catch (error) {
-		handleError(error);
-	}
-}
-
 function logout(event) {
 	event.preventDefault();
 	window.sessionStorage.setItem('login-token', '');
@@ -139,47 +171,10 @@ function logout(event) {
 	setProjects(apiUrl);
 }
 
-async function setLogin(url) {
-	setMenu();
-	const loginForm = document.querySelector('#login');
-	loginForm.addEventListener('submit', async function(event) {
-		event.preventDefault();
-		var logins = {
-			email : event.target.querySelector('[name=email]').value,
-			password : event.target.querySelector('[name=password]').value
-		};
-		var isLogged = await login(url, JSON.stringify(logins));
-		if (isLogged)
-			window.location = './index.html'
-	});
-}
 function getLoginToken () {
 	return window.sessionStorage.getItem('login-token');
 }
-function setLoginToken(value) {
-	try {
-		window.sessionStorage.setItem('login-token', value);
-		return window.sessionStorage.getItem('login-token');
-	}
-	catch (error) {
-		console.error(error.message);
-	}
-}
-function setMenu() {
-	var link = document.querySelector('#login-link');
-	if (window.sessionStorage.getItem('is-connected') == 'true'){
-		link.addEventListener('click', logout);
-		link.innerHTML = 'Logout';
-		if ((modalOpener = document.querySelector('#modal-opener')))
-			modalOpener.classList.add('show');
-	}
-	else {
-		link.removeEventListener('click', logout);
-		link.innerHTML = 'Login';
-		if((modalOpener = document.querySelector('#modal-opener')))
-			modalOpener.classList.remove('show');
-	}
-}
+
 // Modal 
 
 function setModal(modal, works) {
@@ -217,57 +212,6 @@ function changeModal() {
 
 // Create & Delete Projects 
 
-async function deleteProject(project, projectID) {
-	try {
-		if(!confirm(`Are you sure you want to delete "${project.title}" ?`))
-			return false;
-		const loginToken = getLoginToken();
-		const headers = new Headers({
-			Authorization: `Bearer ${loginToken}`});
-
-		const response = await fetch(`${apiUrl}/works/${project.id}`, {
-			method : 'DELETE',
-			headers
-		})
-		if (!response.ok) {
-			throw new Error(`Response status: ${response.status}`);
-		}
-		document.querySelectorAll('.gallery').forEach(gallery => {
-			removeProjectFromGallery(gallery, projectID)
-		})
-	} catch (error) {
-		console.error(error.message);
-	}
-}
-async function createProject(projectOptions) {
-	try {
-		const formData = new FormData();
-		formData.append('image', projectOptions.image);		
-		formData.append('title', projectOptions.title);
-		formData.append('category', projectOptions.category);
-
-		token = getLoginToken();
-		headers = new Headers({
-			Authorization: `Bearer ${token}`,
-		})
-		response = await fetch(`${apiUrl}/works`, {
-			method: 'POST',
-			headers,
-			body: formData
-		});
-		if (!response.ok) {
-			throw new Error(`Response status: ${response.status}`);
-		}
-
-		handleCreationResult(`Projet ${projectOptions.title} créé !`, true)
-		document.querySelector('#projects-form').reset();
-		works = await getWorks(apiUrl);
-		createGallery(document.querySelector('.gallery'), works);
-		
-	} catch (error) {
-		console.error(error);
-	}
-}
 
 function setProjectCreator(projectForm, categories) {
 	const categoryList = projectForm.querySelector('[name=category]');
@@ -313,12 +257,30 @@ function setProjectCreator(projectForm, categories) {
 		projectForm.querySelector('.error-field').innerText = '';
 	});
 }
+async function deleteProject(project, projectID) {
+	try {
+		if(!confirm(`Are you sure you want to delete "${project.title}" ?`))
+			return false;
+		const loginToken = getLoginToken();
+		const headers = new Headers({
+			Authorization: `Bearer ${loginToken}`});
+
+		const response = await fetch(`${apiUrl}/works/${project.id}`, {
+			method : 'DELETE',
+			headers
+		})
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+		document.querySelectorAll('.gallery').forEach(gallery => {
+			removeProjectFromGallery(gallery, projectID)
+		})
+	} catch (error) {
+		console.error(error.message);
+	}
+}
 function removeProjectFromGallery(gallery, projectID) {
 	gallery.querySelectorAll('figure')[projectID].classList.add('hide');
-}
-function handleCreationResult(message, greenFlag) {
-	const textField = greenFlag ? document.querySelector('#creation-success') : document.querySelector('#creation-error') ;
-	textField.innerText = message;
 }
 function validateProject(projectOptions, categories) {
 	const title = projectOptions.title;
@@ -344,12 +306,57 @@ function validateProject(projectOptions, categories) {
 	}
 
 }
+async function createProject(projectOptions) {
+	try {
+		const formData = new FormData();
+		formData.append('image', projectOptions.image);		
+		formData.append('title', projectOptions.title);
+		formData.append('category', projectOptions.category);
 
-/* Non utilisée : une fonction pour récupérer les catégories sans appel à l'API */
-function getCategoriesNoAPICall(works){
+		token = getLoginToken();
+		headers = new Headers({
+			Authorization: `Bearer ${token}`,
+		})
+		response = await fetch(`${apiUrl}/works`, {
+			method: 'POST',
+			headers,
+			body: formData
+		});
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+
+		handleCreationResult(`Projet ${projectOptions.title} créé !`, true)
+		document.querySelector('#projects-form').reset();
+		works = await getWorks(apiUrl);
+		createGallery(document.querySelector('.gallery'), works);
+		
+	} catch (error) {
+		console.error(error);
+	}
+}
+function handleCreationResult(message, greenFlag) {
+	const textField = greenFlag ? document.querySelector('#creation-success') : document.querySelector('#creation-error') ;
+	textField.innerText = message;
+}
+
+/* Non utilisées */
+
+function getCategoriesNoAPICall(works){ // Obtenir les catégories sans appel à l'API
 	var categories = new Set();
 	works.forEach(work =>{
 		categories.add(work.category.name);
 	})
 	return categories;
+}
+
+function setLoginToken(value) {
+	try {
+		window.sessionStorage.setItem('login-token', value);
+		window.sessionStorage.setItem('is-connected', 'true');
+		return window.sessionStorage.getItem('login-token');
+	}
+	catch (error) {
+		console.error(error.message);
+	}
 }

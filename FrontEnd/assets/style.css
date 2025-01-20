@@ -296,15 +296,14 @@ footer nav ul {
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(3, 1fr);
 }
-#modal #modal-closer {
-	cursor:pointer;
-	text-align: right;
+#modal #modal-closer  {
 	display: block;
 	width: fit-content;
 	position: absolute;
 	right: 20px;
 }
 .modal-icon {
+	cursor: pointer;
 	font-size: x-large;
 }
 #modal figure {

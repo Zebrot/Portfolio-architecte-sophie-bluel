@@ -51,7 +51,7 @@ async function setProjects(url) {
 			createGallery(gallery, works, getFilter());
 		});
 	});
-	if(sessionStorage.getItem('login-token'))
+	if(getLoginToken())
 		categoryMenu.classList.add('hide');
 	else 
 		categoryMenu.classList.remove('hide');
@@ -72,7 +72,7 @@ async function setLogin(url) {
 }
 function setMenu() {
 	var link = document.querySelector('#login-link');
-	if (window.sessionStorage.getItem('is-connected') == 'true'){
+	if (getLoginToken()){
 		link.addEventListener('click', logout);
 		link.innerHTML = 'Logout';
 		if ((modalOpener = document.querySelector('#modal-opener')))
@@ -138,16 +138,13 @@ async function login(url, logins) {
 			throw new Error(response.status);
 		else {
 			result = await response.json();
-			window.sessionStorage.setItem('login-token', result.token);
-			window.sessionStorage.setItem('is-connected', 'true');
+			setLoginToken(result.token)
 			return true;
 		}
 	} catch (error) {
 		handleError(error);
 	}
 }
-
-
 function handleError (error) {
 	var errorField = document.querySelector('#error-field');
 	var emailField = document.querySelector('form').querySelector('[name=email]');
@@ -165,20 +162,32 @@ function handleError (error) {
 
 function logout(event) {
 	event.preventDefault();
-	window.sessionStorage.setItem('login-token', '');
-	window.sessionStorage.setItem('is-connected', 'false');
+	setLoginToken('');
 	setMenu();
 	setProjects(apiUrl);
 }
-
 function getLoginToken () {
 	return window.sessionStorage.getItem('login-token');
 }
-
+function setLoginToken(value) {
+	try {
+		window.sessionStorage.setItem('login-token', value);
+		window.sessionStorage.setItem('is-connected', 'true');
+		return window.sessionStorage.getItem('login-token');
+	}
+	catch (error) {
+		console.error(error.message);
+	}
+}
 // Modal 
 
 function setModal(modal, works) {
 	const modalGallery = modal.querySelector('.gallery');
+	window.addEventListener("keyup", function (e) {
+		if (e.key === 'Escape')
+			this.document.querySelector('.modal-bg').classList.add('hide');
+	});
+
 	createModalGallery(modalGallery, works);
 }
 function createModalGallery(gallery, works) {
@@ -211,7 +220,6 @@ function changeModal() {
 }
 
 // Create & Delete Projects 
-
 
 function setProjectCreator(projectForm, categories) {
 	const categoryList = projectForm.querySelector('[name=category]');
@@ -348,15 +356,4 @@ function getCategoriesNoAPICall(works){ // Obtenir les catégories sans appel à
 		categories.add(work.category.name);
 	})
 	return categories;
-}
-
-function setLoginToken(value) {
-	try {
-		window.sessionStorage.setItem('login-token', value);
-		window.sessionStorage.setItem('is-connected', 'true');
-		return window.sessionStorage.getItem('login-token');
-	}
-	catch (error) {
-		console.error(error.message);
-	}
 }

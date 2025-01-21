@@ -337,8 +337,9 @@ async function createProject(projectOptions) {
 		handleCreationResult(`Projet ${projectOptions.title} créé !`, true)
 		document.querySelector('#projects-form').reset();
 		works = await getWorks(apiUrl);
-		createGallery(document.querySelector('.gallery'), works);
-		
+		galleries = document.querySelectorAll('.gallery');
+		createGallery(galleries[0], works);
+		createModalGallery(galleries[1],works);
 	} catch (error) {
 		console.error(error);
 	}

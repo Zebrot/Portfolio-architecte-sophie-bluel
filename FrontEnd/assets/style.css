@@ -182,12 +182,15 @@ li:hover {
 	width: 100%;
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
+	grid-auto-rows: 1fr;
 	grid-column-gap: 20px;
 	grid-row-gap: 20px;
 }
 
 .gallery img {
 	width: 100%;
+	height: calc(100% - 1em);
+	object-fit: cover;
 }
 .form {
 	width: 50%;

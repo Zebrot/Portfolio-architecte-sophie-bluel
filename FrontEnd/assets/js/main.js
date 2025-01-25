@@ -56,7 +56,7 @@ async function setProjects(url) {
 	else 
 		categoryMenu.classList.remove('hide');
 }
-async function setLogin(url) {
+async function setLoginPage(url) {
 	setMenu();
 	const loginForm = document.querySelector('#login');
 	loginForm.addEventListener('submit', async function(event) {
